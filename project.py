@@ -54,7 +54,7 @@ with onto:
        inverse_property = hasDescription
    class prerequisites(Course >> Course):pass
    class teaches(FacultyMember >> Course):pass
-   class worksAt(Person >> University):pass
+   class worksAt(UniEmployee >> University):pass
    class attends(Student >> Course):pass
    class advisor(Student >> FacultyMember):pass
    class advises(ObjectProperty):
@@ -96,7 +96,8 @@ UndergraduateStudent.equivalent_to.append(Student & enrolledIn.some(Undergraduat
 MScStudent.equivalent_to.append(Student & enrolledIn.some(MScProgram))
 PhDStudent.equivalent_to.append(Student & enrolledIn.some(PhDProgram))
  
- 
+
+#---------------Abox for concepts---------------
 
 u = [] 
 for i in range(4):
@@ -130,9 +131,79 @@ admin[2].is_a.append(CSDEmployee)
 fac[0].is_a.append(CSDEmployee)
 prof[0].is_a.append(CSDEmployee)
 
-print(UniEmployee.instances())
-print(CSDEmployee.instances())
-print(AdministrativePersonnel.instances())
+
+gradC = []
+for i in range(5):
+    gradC.append(onto.GraduateCourse("gradC"+ str(i)))
+
+underC = []
+for i in range(5):
+    underC.append(onto.UndergraduateCourse("underC"+ str(i)))
+
+d = []
+for i in range(10):
+    d.append(onto.Description("d"+ str(i)))
+
+uStudies = []
+for i in range(5):
+    uStudies.append(onto.UndergraduateStudies("uStudies"+ str(i)))
+
+mscPr = []
+for i in range(5):
+    mscPr.append(onto.MScProgram("mscPr"+ str(i)))
+
+phdPr = []
+for i in range(5):
+    phdPr.append(onto.PhDProgram("phdPr"+ str(i)))
+
+
+uSt = []
+for i in range(5):
+    uSt.append(onto.UndergraduateStudent("uSt"+ str(i)))
+
+mscSt = []
+for i in range(5):
+    mscSt.append(onto.MScStudent("mscSt"+ str(i)))
+
+phdSt = []
+for i in range(5):
+    phdSt.append(onto.PhDStudent("phdSt"+ str(i)))
+
+
+alumni = []
+for i in range(5):
+    alumni.append(onto.Alumni("alumni"+ str(i)))
+
+csdAlumni = []
+for i in range(2):
+    csdAlumni.append(onto.CSDAlumni("csdAlumni"+ str(i)))
+phdSt[0].is_a.append(CSDAlumni)
+phdSt[1].is_a.append(CSDAlumni)
+mscSt[0].is_a.append(CSDAlumni)
+
+area = []
+for i in range(5):
+    area.append(onto.Area("area"+ str(i)))
+
+carea = []
+for i in range(5):
+    carea.append(onto.CourseArea("carea"+ str(i)))
+
+
+#---------------Abox for roles---------------
+
+# for i in range(5):
+#     u[i].consistOf = [dep[0]]
+    
+
+# for sh in onto.consistOf.get_relations():
+#     print(sh.x1, sh)
+
+print(Area.instances())
+print(CourseArea.instances())
+# print(MScStudent.instances())
+# print(PhDStudent.instances())
+# print(Person.instances())
 
 # print(admin[0])
  
