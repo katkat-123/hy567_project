@@ -12,8 +12,12 @@ with onto:
     
     
     class Person(Thing):pass
+
+
+    class Alumni(Person):pass
+    class CSDAlumni(Alumni):pass
     
-    class UniEmployee(Person):pass
+    class UniEmployee(Alumni):pass
 
     class AdministrativePersonnel(UniEmployee):pass
     class FacultyMember(UniEmployee):pass
@@ -31,9 +35,6 @@ with onto:
     class PostGraduateStudies(StudiesProgram):pass
     class MScProgram(PostGraduateStudies):pass
     class PhDProgram(PostGraduateStudies):pass
-    
-    class Alumni(Person):pass
-    class CSDAlumni(Alumni):pass
     
     class Student(Person):pass
     class UndergraduateStudent(Student):pass
@@ -55,20 +56,16 @@ with onto:
     class teaches(FacultyMember >> Course):pass
     class worksAt(UniEmployee >> University):pass
     class attends(Student >> Course):pass
-    class advisor(Student >> FacultyMember):pass
-    class advises(ObjectProperty):
-        inverse_property = advisor
-    class mscAdvisor(advisor):
-        domain=[MScStudent]
-    class phdAdvisor(advisor):
-        domain=[PhDStudent]
-    
+    class advisor(UndergraduateStudent >> FacultyMember):pass
+    class mscAdvisor(MScStudent >> FacultyMember):pass
+    class phdAdvisor(PhDStudent >> FacultyMember):pass
+   
     class consistOf(University >> Department):pass
  
  
     University.equivalent_to.append(consistOf.some(Department))
 
-    UniEmployee.equivalent_to.append(Person & worksAt.some(University))
+    UniEmployee.equivalent_to.append(Alumni & worksAt.some(University))
     UniEmployee.equivalent_to.append(FacultyMember | AdministrativePersonnel)
     FacultyMember.equivalent_to.append(UniEmployee & teaches.some(Course))
     AdministrativePersonnel.is_a.append(UniEmployee)
@@ -90,15 +87,15 @@ with onto:
     # Alumni.is_a.append(MScStudent | PhDStudent)
     CSDAlumni.is_a.append(Alumni & graduatedFrom.some(UOC))
 
-    Student.equivalent_to.append(Person & advisor.exactly(1,FacultyMember))
     Student.equivalent_to.append(UndergraduateStudent | MScStudent | PhDStudent)
     Student.is_a.append(Student & attends.some(Course))
-    UndergraduateStudent.equivalent_to.append(Student & enrolledIn.some(UndergraduateStudies))
-    MScStudent.equivalent_to.append(Student & enrolledIn.some(MScProgram))
+    UndergraduateStudent.equivalent_to.append(Student & enrolledIn.some(UndergraduateStudies) & advisor.exactly(1,FacultyMember))
+    MScStudent.equivalent_to.append(Student & enrolledIn.some(MScProgram) & mscAdvisor.exactly(1,FacultyMember))
     MScStudent.is_a.append(Alumni)
-    PhDStudent.equivalent_to.append(Student & enrolledIn.some(PhDProgram))
+    PhDStudent.equivalent_to.append(Student & enrolledIn.some(PhDProgram) & phdAdvisor.exactly(1,FacultyMember))
     PhDStudent.is_a.append(Alumni)
     
+    # mscAdvisor.equivalent_to.append( )
 
     #---------------Abox for concepts---------------
 
@@ -266,88 +263,88 @@ with onto:
 
 
     # courseBelongsTo: 
-    gradC[0].courseBelongsTo=[carea[0]]
-    gradC[1].courseBelongsTo=[carea[1]]
-    gradC[2].courseBelongsTo=[carea[0]]
-    gradC[3].courseBelongsTo=[carea[2]]
-    gradC[4].courseBelongsTo=[carea[3]]
-    underC[0].courseBelongsTo=[carea[0]]
-    underC[1].courseBelongsTo=[carea[4]]
-    underC[2].courseBelongsTo=[carea[1]]
-    underC[3].courseBelongsTo=[carea[2]] 
-    underC[4].courseBelongsTo=[carea[3]] 
+    gradC[0].courseBelongsTo = [carea[0]]
+    gradC[1].courseBelongsTo = [carea[1]]
+    gradC[2].courseBelongsTo = [carea[0]]
+    gradC[3].courseBelongsTo = [carea[2]]
+    gradC[4].courseBelongsTo = [carea[3]]
+    underC[0].courseBelongsTo = [carea[0]]
+    underC[1].courseBelongsTo = [carea[4]]
+    underC[2].courseBelongsTo = [carea[1]]
+    underC[3].courseBelongsTo = [carea[2]] 
+    underC[4].courseBelongsTo = [carea[3]] 
     
 
     #studiesBelongsTo: 
-    mscPr[0].studiesBelongsTo=[carea[0]] 
-    mscPr[1].studiesBelongsTo=[carea[1]]
-    mscPr[2].studiesBelongsTo=[carea[4]]
-    mscPr[3].studiesBelongsTo=[carea[0]]
-    mscPr[4].studiesBelongsTo=[carea[2]]
-    phdPr[0].studiesBelongsTo=[carea[3]] 
-    phdPr[1].studiesBelongsTo=[carea[4]]
-    phdPr[2].studiesBelongsTo=[carea[2]]
-    phdPr[3].studiesBelongsTo=[carea[0]]
-    phdPr[4].studiesBelongsTo=[carea[4]]
+    mscPr[0].studiesBelongsTo = [carea[0]] 
+    mscPr[1].studiesBelongsTo = [carea[1]]
+    mscPr[2].studiesBelongsTo = [carea[4]]
+    mscPr[3].studiesBelongsTo = [carea[0]]
+    mscPr[4].studiesBelongsTo = [carea[2]]
+    phdPr[0].studiesBelongsTo = [carea[3]] 
+    phdPr[1].studiesBelongsTo = [carea[4]]
+    phdPr[2].studiesBelongsTo = [carea[2]]
+    phdPr[3].studiesBelongsTo = [carea[0]]
+    phdPr[4].studiesBelongsTo = [carea[4]]
 
     # prerequisites: 
-    underC[0].prerequisites=[underC[1], underC[2]]
-    underC[1].prerequisites=[underC[3]]
-    gradC[0].prerequisites=[gradC[1]]
-    gradC[1].prerequisites=[gradC[2]]
+    underC[0].prerequisites = [underC[1], underC[2]]
+    underC[1].prerequisites = [underC[3]]
+    gradC[0].prerequisites = [gradC[1]]
+    gradC[1].prerequisites = [gradC[2]]
 
 
     # advisor: 
-    uSt[0].advisor=[fac[0]]
-    uSt[1].advisor=[fac[0]]
-    uSt[2].advisor=[fac[1]]
-    uSt[3].advisor=[prof[0]]
-    uSt[4].advisor=[prof[1]]
+    uSt[0].advisor = [fac[0]]
+    uSt[1].advisor = [fac[0]]
+    uSt[2].advisor = [fac[1]]
+    uSt[3].advisor = [prof[0]]
+    uSt[4].advisor = [prof[1]]
 
     # mscAdvisor: 
-    mscSt[0].mscAdvisor=[fac[0]]
-    mscSt[1].mscAdvisor=[prof[1]]
-    mscSt[2].mscAdvisor=[prof[3]]
-    mscSt[3].mscAdvisor=[fac[4]]
-    mscSt[4].mscAdvisor=[prof[3]]
+    mscSt[0].mscAdvisor = [fac[0]]
+    mscSt[1].mscAdvisor = [prof[1]]
+    mscSt[2].mscAdvisor = [prof[3]]
+    mscSt[3].mscAdvisor = [fac[4]]
+    mscSt[4].mscAdvisor = [prof[3]]
 
     # phdAdvisor: 
-    phdSt[0].phdAdvisor=[prof[0]]
-    phdSt[1].phdAdvisor=[prof[2]]
-    phdSt[2].phdAdvisor=[prof[3]]
-    phdSt[3].phdAdvisor=[fac[4]]
-    phdSt[4].phdAdvisor=[fac[4]]
+    phdSt[0].phdAdvisor = [prof[0]]
+    phdSt[1].phdAdvisor = [prof[2]]
+    phdSt[2].phdAdvisor = [prof[3]]
+    phdSt[3].phdAdvisor = [fac[4]]
+    phdSt[4].phdAdvisor = [fac[4]]
 
     # graduatedFrom: 
-    csdAlumni[0].graduatedFrom=[u[4]]
-    csdAlumni[1].graduatedFrom=[u[4]]
-    phdSt[0].graduatedFrom=[u[4]]
-    phdSt[1].graduatedFrom=[u[4]]
-    mscSt[0].graduatedFrom=[u[4]]
-    alumni[0].graduatedFrom=[u[1]]
-    alumni[1].graduatedFrom=[u[1]]
-    alumni[2].graduatedFrom=[u[2]]
-    alumni[3].graduatedFrom=[u[3]]
-    alumni[4].graduatedFrom=[u[0]]
-    mscSt[1].graduatedFrom=[u[1]]
-    mscSt[2].graduatedFrom=[u[2]]
-    mscSt[3].graduatedFrom=[u[3]]
-    mscSt[4].graduatedFrom=[u[0]]
-    phdSt[2].graduatedFrom=[u[1]]
-    phdSt[3].graduatedFrom=[u[2]]
-    phdSt[4].graduatedFrom=[u[3]]
+    csdAlumni[0].graduatedFrom = [u[4]]
+    csdAlumni[1].graduatedFrom = [u[4]]
+    phdSt[0].graduatedFrom = [u[4]]
+    phdSt[1].graduatedFrom = [u[4]]
+    mscSt[0].graduatedFrom = [u[4]]
+    alumni[0].graduatedFrom = [u[1]]
+    alumni[1].graduatedFrom = [u[1]]
+    alumni[2].graduatedFrom = [u[2]]
+    alumni[3].graduatedFrom = [u[3]]
+    alumni[4].graduatedFrom = [u[0]]
+    mscSt[1].graduatedFrom = [u[1]]
+    mscSt[2].graduatedFrom = [u[2]]
+    mscSt[3].graduatedFrom = [u[3]]
+    mscSt[4].graduatedFrom = [u[0]]
+    phdSt[2].graduatedFrom = [u[1]]
+    phdSt[3].graduatedFrom = [u[2]]
+    phdSt[4].graduatedFrom = [u[3]]
     
     # hasDescription: 
-    underC[0].hasDescription=[d[0]]
-    underC[1].hasDescription=[d[1]]
-    underC[2].hasDescription=[d[2]]
-    underC[3].hasDescription=[d[3]]
-    underC[4].hasDescription=[d[4]]
-    gradC[0].hasDescription=[d[5]]
-    gradC[1].hasDescription=[d[6]]
-    gradC[2].hasDescription=[d[7]]
-    gradC[3].hasDescription=[d[8]]
-    gradC[4].hasDescription=[d[9]]
+    underC[0].hasDescription = [d[0]]
+    underC[1].hasDescription = [d[1]]
+    underC[2].hasDescription = [d[2]]
+    underC[3].hasDescription = [d[3]]
+    underC[4].hasDescription = [d[4]]
+    gradC[0].hasDescription = [d[5]]
+    gradC[1].hasDescription = [d[6]]
+    gradC[2].hasDescription = [d[7]]
+    gradC[3].hasDescription = [d[8]]
+    gradC[4].hasDescription = [d[9]]
 
     sync_reasoner()
 
