@@ -1,6 +1,6 @@
 from owlready2 import *
  
-onto = get_ontology("./new.owl")
+onto = get_ontology("./input.owl")
 onto.load()
  
 with onto:
@@ -9,21 +9,20 @@ with onto:
     class UOC(University):pass
     
     class Department(Thing):pass
-    
+    class CSD(Department):pass
     
     class Person(Thing):pass
-
 
     class Alumni(Person):pass
     class CSDAlumni(Alumni):pass
     
     class UniEmployee(Alumni):pass
+    class CSDEmployee(UniEmployee):pass
 
     class AdministrativePersonnel(UniEmployee):pass
     class FacultyMember(UniEmployee):pass
     class Professor(FacultyMember):pass
     
-    class CSDEmployee(UniEmployee):pass
     
     class Course(Thing):pass
     class GraduateCourse(Course):pass
@@ -32,9 +31,9 @@ with onto:
     
     class StudiesProgram(Thing):pass
     class UndergraduateStudies(StudiesProgram):pass
-    class PostGraduateStudies(StudiesProgram):pass
-    class MScProgram(PostGraduateStudies):pass
-    class PhDProgram(PostGraduateStudies):pass
+    class PostgraduateStudies(StudiesProgram):pass
+    class MScProgram(PostgraduateStudies):pass
+    class PhDProgram(PostgraduateStudies):pass
     
     class Student(Person):pass
     class UndergraduateStudent(Student):pass
@@ -46,30 +45,31 @@ with onto:
     class CourseArea(Area):pass
     
     class enrolledIn(Student >> StudiesProgram):pass
-    class graduatedFrom(Alumni >> University):pass
+    class graduatedFrom(Alumni >> Department):pass
     class courseBelongsTo(Course >> CourseArea):pass
-    class studiesBelongsTo(PostGraduateStudies >> CourseArea):pass
+    class studiesBelongsTo(PostgraduateStudies >> CourseArea):pass
     class hasDescription(Course >> Description):pass
     class describes(ObjectProperty):
         inverse_property = hasDescription
     class prerequisites(Course >> Course):pass
     class teaches(FacultyMember >> Course):pass
-    class worksAt(UniEmployee >> University):pass
+    class worksAt(UniEmployee >> Department):pass
     class attends(Student >> Course):pass
     class advisor(UndergraduateStudent >> FacultyMember):pass
     class mscAdvisor(MScStudent >> FacultyMember):pass
     class phdAdvisor(PhDStudent >> FacultyMember):pass
    
-    class consistOf(University >> Department):pass
+    class belongsTo(Department >> University):pass
  
  
-    University.equivalent_to.append(consistOf.some(Department))
+    Department.equivalent_to.append(belongsTo.exactly(1, University))
+    CSD.is_a.append(Department & belongsTo.exactly(1, UOC))
 
-    UniEmployee.equivalent_to.append(Alumni & worksAt.some(University))
+    UniEmployee.equivalent_to.append(Alumni & worksAt.some(Department))
     UniEmployee.equivalent_to.append(FacultyMember | AdministrativePersonnel)
     FacultyMember.equivalent_to.append(UniEmployee & teaches.some(Course))
     AdministrativePersonnel.is_a.append(UniEmployee)
-    CSDEmployee.is_a.append(UniEmployee & worksAt.some(UOC))
+    CSDEmployee.equivalent_to.append(UniEmployee & worksAt.some(CSD))
 
     Course.equivalent_to.append(GraduateCourse | UndergraduateCourse)
     Course.equivalent_to.append(Course & hasDescription.exactly(1,Description) & prerequisites.min(0,Course))
@@ -77,15 +77,14 @@ with onto:
     AllDisjoint([GraduateCourse,UndergraduateCourse])
     GraduateCourse.equivalent_to.append(GraduateCourse & courseBelongsTo.some(CourseArea))
 
-    StudiesProgram.equivalent_to.append(PostGraduateStudies | UndergraduateStudies)
-    AllDisjoint([PostGraduateStudies,UndergraduateStudies])
-    PostGraduateStudies.equivalent_to.append(PostGraduateStudies & studiesBelongsTo.some(CourseArea))
-    PostGraduateStudies.equivalent_to.append(MScProgram | PhDProgram)
+    StudiesProgram.equivalent_to.append(PostgraduateStudies | UndergraduateStudies)
+    AllDisjoint([PostgraduateStudies,UndergraduateStudies])
+    PostgraduateStudies.equivalent_to.append(PostgraduateStudies & studiesBelongsTo.some(CourseArea))
+    PostgraduateStudies.equivalent_to.append(MScProgram | PhDProgram)
    
 
-    Alumni.equivalent_to.append(Person & graduatedFrom.some(University))
-    # Alumni.is_a.append(MScStudent | PhDStudent)
-    CSDAlumni.is_a.append(Alumni & graduatedFrom.some(UOC))
+    Alumni.equivalent_to.append(Person & graduatedFrom.some(Department))
+    CSDAlumni.equivalent_to.append(Alumni & graduatedFrom.some(CSD))
 
     Student.equivalent_to.append(UndergraduateStudent | MScStudent | PhDStudent)
     Student.is_a.append(Student & attends.some(Course))
@@ -94,8 +93,7 @@ with onto:
     MScStudent.is_a.append(Alumni)
     PhDStudent.equivalent_to.append(Student & enrolledIn.some(PhDProgram) & phdAdvisor.exactly(1,FacultyMember))
     PhDStudent.is_a.append(Alumni)
-    
-    # mscAdvisor.equivalent_to.append( )
+
 
     #---------------Abox for concepts---------------
 
@@ -106,8 +104,10 @@ with onto:
     u.append(onto.UOC("u4"))
 
     dep = [] 
-    for i in range(5):
+    for i in range(4):
         dep.append(onto.Department("dep"+ str(i)))
+    
+    dep.append(onto.CSD("dep4"))
 
     p = [] 
     for i in range(5):
@@ -192,29 +192,29 @@ with onto:
     #---------------Abox for roles---------------
 
     #consistOf
-    u[0].consistOf = [dep[0],dep[1],dep[2]]
-    u[1].consistOf = [dep[0], dep[3]]
-    u[2].consistOf = [dep[4]]
-    u[3].consistOf = [dep[3],dep[4]]
-    u[4].consistOf = [dep[0],dep[1],dep[4]]
 
+    dep[0].belongsTo = [u[1]]
+    dep[1].belongsTo = [u[1]]
+    dep[2].belongsTo = [u[2]]
+    dep[3].belongsTo = [u[3]]
+    dep[4].belongsTo = [u[4]]
 
     #worksAt
-    fac[0].worksAt = [u[4]]
-    fac[1].worksAt = [u[1]]
-    fac[2].worksAt = [u[2]]
-    fac[3].worksAt = [u[3]]
-    fac[4].worksAt = [u[0]]
-    prof[0].worksAt = [u[4]]
-    prof[1].worksAt = [u[1]]
-    prof[2].worksAt = [u[2]]
-    prof[3].worksAt = [u[3]]
-    prof[4].worksAt = [u[0]]
-    admin[0].worksAt = [u[4]]
-    admin[1].worksAt = [u[4]]
-    admin[2].worksAt = [u[4]]
-    admin[3].worksAt = [u[3]]
-    admin[4].worksAt = [u[0]]
+    fac[0].worksAt = [dep[4]]
+    fac[1].worksAt = [dep[1]]
+    fac[2].worksAt = [dep[2]]
+    fac[3].worksAt = [dep[3]]
+    fac[4].worksAt = [dep[0]]
+    prof[0].worksAt = [dep[4]]
+    prof[1].worksAt = [dep[1]]
+    prof[2].worksAt = [dep[2]]
+    prof[3].worksAt = [dep[3]]
+    prof[4].worksAt = [dep[0]]
+    admin[0].worksAt = [dep[4]]
+    admin[1].worksAt = [dep[4]]
+    admin[2].worksAt = [dep[4]]
+    admin[3].worksAt = [dep[3]]
+    admin[4].worksAt = [dep[0]]
 
 
     #teaches
@@ -316,23 +316,23 @@ with onto:
     phdSt[4].phdAdvisor = [fac[4]]
 
     # graduatedFrom: 
-    csdAlumni[0].graduatedFrom = [u[4]]
-    csdAlumni[1].graduatedFrom = [u[4]]
-    phdSt[0].graduatedFrom = [u[4]]
-    phdSt[1].graduatedFrom = [u[4]]
-    mscSt[0].graduatedFrom = [u[4]]
-    alumni[0].graduatedFrom = [u[1]]
-    alumni[1].graduatedFrom = [u[1]]
-    alumni[2].graduatedFrom = [u[2]]
-    alumni[3].graduatedFrom = [u[3]]
-    alumni[4].graduatedFrom = [u[0]]
-    mscSt[1].graduatedFrom = [u[1]]
-    mscSt[2].graduatedFrom = [u[2]]
-    mscSt[3].graduatedFrom = [u[3]]
-    mscSt[4].graduatedFrom = [u[0]]
-    phdSt[2].graduatedFrom = [u[1]]
-    phdSt[3].graduatedFrom = [u[2]]
-    phdSt[4].graduatedFrom = [u[3]]
+    csdAlumni[0].graduatedFrom = [dep[4]]
+    csdAlumni[1].graduatedFrom = [dep[4]]
+    phdSt[0].graduatedFrom = [dep[4]]
+    phdSt[1].graduatedFrom = [dep[4]]
+    mscSt[0].graduatedFrom = [dep[4]]
+    alumni[0].graduatedFrom = [dep[1]]
+    alumni[1].graduatedFrom = [dep[1]]
+    alumni[2].graduatedFrom = [dep[2]]
+    alumni[3].graduatedFrom = [dep[3]]
+    alumni[4].graduatedFrom = [dep[0]]
+    mscSt[1].graduatedFrom = [dep[1]]
+    mscSt[2].graduatedFrom = [dep[2]]
+    mscSt[3].graduatedFrom = [dep[3]]
+    mscSt[4].graduatedFrom = [dep[0]]
+    phdSt[2].graduatedFrom = [dep[1]]
+    phdSt[3].graduatedFrom = [dep[2]]
+    phdSt[4].graduatedFrom = [dep[3]]
     
     # hasDescription: 
     underC[0].hasDescription = [d[0]]
@@ -346,24 +346,13 @@ with onto:
     gradC[3].hasDescription = [d[8]]
     gradC[4].hasDescription = [d[9]]
 
-    sync_reasoner()
 
-onto.save('./our_schema.owl')
+onto.save('./output.owl')
 
 
 # sync_reasoner(infer_property_values = True)
 
-for sh in onto.advisor.get_relations():
-    print(sh[0], sh[1])
-# print(Course.equivalent_to)
-# print(worksAt.domain)
-# print(Area.instances())
-# print(CourseArea.instances())
-# print(MScStudent.instances())
-# print(PhDStudent.instances())
-# print(Person.instances())
+# for sh in onto.advisor.get_relations():
+#     print(sh[0], sh[1])
 
-# print(admin[0])
- 
- 
-# onto.save('./test.owl')
+# print(MScStudent.instances())
